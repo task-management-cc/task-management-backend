@@ -1,0 +1,4 @@
+/node_modules
+.DS_Store
+.env
+us-east-2-bundle.pem
