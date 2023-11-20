@@ -10,7 +10,6 @@ app.use(cors());
 
 app.post("/tasks", async (req, res) => {
   try {
-    console.log(req.body);
     const { title, description, progress, status, due_date, email, priority } =
       req.body;
     const result = await pool.query(
@@ -30,7 +29,6 @@ app.get("/tasks", async (req, res) => {
     const tasks = await pool.query("SELECT * FROM tasks WHERE email = $1", [
       email,
     ]);
-    console.log(tasks.rows);
     res.json(tasks.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -51,7 +49,6 @@ app.get("/tasks/:id", async (req, res) => {
 
 app.put("/tasks/:id", async (req, res) => {
   try {
-    console.log(req.body);
     const { id } = req.params;
     const { title, description, progress, status, due_date, email, priority } =
       req.body;
