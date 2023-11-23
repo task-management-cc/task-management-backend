@@ -3,18 +3,23 @@ const cors = require("cors");
 const express = require("express");
 const pool = require("./dbconfig");
 const app = express();
-const port = 4000;
+const port = process.env.PORT || 4000;
 
 app.use(express.json());
 app.use(cors());
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 app.post("/tasks", async (req, res) => {
   try {
     const { title, description, progress, status, due_date, email, priority } =
       req.body;
+    const validDueDate = due_date ? due_date : null;
     const result = await pool.query(
       "INSERT INTO tasks (title, description, progress, status, due_date, email, priority) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-      [title, description, progress, status, due_date, email, priority]
+      [title, description, progress, status, validDueDate, email, priority]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -52,9 +57,10 @@ app.put("/tasks/:id", async (req, res) => {
     const { id } = req.params;
     const { title, description, progress, status, due_date, email, priority } =
       req.body;
+    const validDueDate = due_date ? due_date : null;
     const result = await pool.query(
       "UPDATE tasks SET title = $1, description = $2, progress = $3, status = $4, due_date = $5, email = $6, priority = $7 WHERE task_id = $8 RETURNING *",
-      [title, description, progress, status, due_date, email, priority, id]
+      [title, description, progress, status, validDueDate, email, priority, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).send("Task not found");
