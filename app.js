@@ -14,12 +14,12 @@ app.get("/", (req, res) => {
 
 app.post("/tasks", async (req, res) => {
   try {
-    const { title, description, progress, status, due_date, email, priority } =
+    const { title, description, progress, status, due_date, uid, priority } =
       req.body;
     const validDueDate = due_date ? due_date : null;
     const result = await pool.query(
-      "INSERT INTO tasks (title, description, progress, status, due_date, email, priority) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-      [title, description, progress, status, validDueDate, email, priority]
+      "INSERT INTO tasks (title, description, progress, status, due_date, user_id, priority) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+      [title, description, progress, status, validDueDate, uid, priority]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -29,10 +29,10 @@ app.post("/tasks", async (req, res) => {
 
 app.get("/tasks", async (req, res) => {
   try {
-    const { email } = req.query;
+    const { uid } = req.query;
 
-    const tasks = await pool.query("SELECT * FROM tasks WHERE email = $1", [
-      email,
+    const tasks = await pool.query("SELECT * FROM tasks WHERE user_id = $1", [
+      uid,
     ]);
     res.json(tasks.rows);
   } catch (err) {
@@ -55,12 +55,12 @@ app.get("/tasks/:id", async (req, res) => {
 app.put("/tasks/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, progress, status, due_date, email, priority } =
+    const { title, description, progress, status, due_date, uid, priority } =
       req.body;
     const validDueDate = due_date ? due_date : null;
     const result = await pool.query(
-      "UPDATE tasks SET title = $1, description = $2, progress = $3, status = $4, due_date = $5, email = $6, priority = $7 WHERE task_id = $8 RETURNING *",
-      [title, description, progress, status, validDueDate, email, priority, id]
+      "UPDATE tasks SET title = $1, description = $2, progress = $3, status = $4, due_date = $5, user_id = $6, priority = $7 WHERE task_id = $8 RETURNING *",
+      [title, description, progress, status, validDueDate, uid, priority, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).send("Task not found");
@@ -78,6 +78,19 @@ app.delete("/tasks/:id", async (req, res) => {
       id,
     ]);
     res.json("Task was deleted!");
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/tasks", async (req, res) => {
+  try {
+    const { uid } = req.query;
+
+    const tasks = await pool.query("DELETE FROM tasks WHERE user_id = $1", [
+      uid,
+    ]);
+    res.json("Tasks were deleted!");
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
